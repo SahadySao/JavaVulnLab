@@ -1,0 +1,26 @@
+# test name, category, real vulnerability, cwe
+SqliSpringImplicitParam,sqli,true,89
+SqliSpringImplicitModelAttribute,sqli,true,89
+SqliSpringWebRequest,sqli,true,89
+SqliSpringNamedParameterJdbc,sqli,true,89
+SqliSpringJdbcClient,sqli,true,89
+SqliSpringJpaNative,sqli,true,89
+SqliSpringPathVariableLong,sqli,false,89
+SqliSpringPreparedQuery,sqli,false,89
+SqliSpringRequestAttribute,sqli,false,89
+SqliJaxrsQueryParam,sqli,true,89
+SqliJaxrsPathParam,sqli,true,89
+SqliJaxrsEntityBody,sqli,true,89
+SqliJaxrsUriInfo,sqli,true,89
+SqliJaxrsBeanParam,sqli,true,89
+SqliJaxrsSetParameter,sqli,false,89
+SqliServletJakarta,sqli,true,89
+SqliSpringParseInt,sqli,false,89
+CmdiSpringProcessBuilder,cmdi,true,78
+CmdiJaxrsRuntimeExec,cmdi,true,78
+CmdiSpringEncodeForOS,cmdi,false,78
+CmdiSpringParseInt,cmdi,false,78
+PathSpringFile,pathtraver,true,22
+PathJaxrsNio,pathtraver,true,22
+PathSpringFilenameUtils,pathtraver,false,22
+PathSpringEsapiValidator,pathtraver,false,22
