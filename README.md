@@ -1,5 +1,7 @@
 # JavaVulnLab
 
+> ⚠️ Code volontairement vulnérable, à des fins de test. Ne pas déployer.
+
 Application de test pour Tiresias. Elle couvre ce que l'OWASP BenchmarkJava ne couvre pas : Spring MVC, JAX-RS, JPA, Hibernate, Spring JDBC, Servlet `jakarta`, et les nettoyages (sanitizers).
 
 Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seules, il n'a pas besoin des dépendances.
@@ -7,7 +9,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 ## Règles
 
 - Un cas = un fichier `.java` = une ligne dans `expected.csv`.
-- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`) pour rester unique.
+- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`) pour rester unique.
 - Les cas sont rangés par vulnérabilité, puis par technologie : `vulnlab/<vulnérabilité>/<techno>/`.
 - `vulnlab/common/` contient les classes utilitaires, qui ne sont pas des cas.
 
@@ -53,6 +55,17 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `PathSpringFilenameUtils` | non | nettoyage `FilenameUtils.getName` |
 | `PathSpringEsapiValidator` | non | nettoyage ESAPI `getValidFileName` |
 
+### `xss` : cross-site scripting (6 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `XssServletWriter` | oui | `response.getWriter().println(... + name)` |
+| `XssServletPrintWriterVar` | oui | `PrintWriter out = response.getWriter(); out.print(...)` |
+| `XssSpringResponseWriter` | oui | handler Spring qui écrit dans `HttpServletResponse` |
+| `XssSpringHtmlUtils` | non | nettoyage Spring `HtmlUtils.htmlEscape` |
+| `XssServletOwaspEncoder` | non | nettoyage OWASP Java Encoder `Encode.forHtml` |
+| `XssServletFileWriter` | non | `PrintWriter` vers un fichier de log : pas la réponse HTTP |
+
 ## Mesure
 
 Depuis la racine de Tiresias :
@@ -61,4 +74,5 @@ Depuis la racine de Tiresias :
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule sqli
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule cmdi
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule pathtraver
+python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule xss
 ```

@@ -24,3 +24,9 @@ PathSpringFile,pathtraver,true,22
 PathJaxrsNio,pathtraver,true,22
 PathSpringFilenameUtils,pathtraver,false,22
 PathSpringEsapiValidator,pathtraver,false,22
+XssServletWriter,xss,true,79
+XssServletPrintWriterVar,xss,true,79
+XssSpringResponseWriter,xss,true,79
+XssSpringHtmlUtils,xss,false,79
+XssServletOwaspEncoder,xss,false,79
+XssServletFileWriter,xss,false,79
