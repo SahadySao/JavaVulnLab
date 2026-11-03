@@ -61,3 +61,9 @@ LdapiSpringQueryFilter,ldapi,true,90
 LdapiSpringQueryWhere,ldapi,false,90
 LdapiSpringLdapEncoder,ldapi,false,90
 LdapiSpringUnboundId,ldapi,true,90
+SqliWebSocketStomp,sqli,true,89
+SqliWebSocketHandler,sqli,true,89
+SqliWebSocketPathParam,sqli,true,89
+SqliWebSocketSessionOnly,sqli,false,89
+CmdiWebSocketJakarta,cmdi,true,78
+CmdiWebSocketMessageHandler,cmdi,true,78

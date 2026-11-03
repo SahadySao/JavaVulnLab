@@ -15,7 +15,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 
 ## Cas
 
-### `sqli` : injection SQL (17 cas)
+### `sqli` : injection SQL (21 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -36,8 +36,12 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `SqliJaxrsBeanParam` | oui | `@BeanParam`, lu par un getter |
 | `SqliJaxrsSetParameter` | non | JPQL paramétré (`:name` + `setParameter`) |
 | `SqliServletJakarta` | oui | `jakarta.servlet` → JDBC `Statement.execute` |
+| `SqliWebSocketStomp` | oui | WebSocket Spring STOMP : paramètre de `@MessageMapping` |
+| `SqliWebSocketHandler` | oui | WebSocket Spring brut : `TextWebSocketHandler.handleTextMessage` |
+| `SqliWebSocketPathParam` | oui | WebSocket Jakarta : `@PathParam` d'une méthode `@OnOpen` |
+| `SqliWebSocketSessionOnly` | non | WebSocket Jakarta : seul `session.getId()` (généré par le serveur) est utilisé |
 
-### `cmdi` : injection de commandes (4 cas)
+### `cmdi` : injection de commandes (6 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -45,6 +49,8 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `CmdiJaxrsRuntimeExec` | oui | `Runtime.exec(new String[] {...})` avec un élément contrôlé |
 | `CmdiSpringEncodeForOS` | non | nettoyage ESAPI `encodeForOS` |
 | `CmdiSpringParseInt` | non | nettoyage `Integer.parseInt` |
+| `CmdiWebSocketJakarta` | oui | WebSocket Jakarta : paramètre de `@OnMessage` |
+| `CmdiWebSocketMessageHandler` | oui | WebSocket Jakarta programmatique : `MessageHandler.Whole<String>` |
 
 ### `pathtraver` : path traversal (4 cas)
 
