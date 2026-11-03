@@ -9,7 +9,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 ## Règles
 
 - Un cas = un fichier `.java` = une ligne dans `expected.csv`.
-- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`) pour rester unique.
+- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`, `Xxe`) pour rester unique.
 - Les cas sont rangés par vulnérabilité, puis par technologie : `vulnlab/<vulnérabilité>/<techno>/`.
 - `vulnlab/common/` contient les classes utilitaires, qui ne sont pas des cas.
 
@@ -55,7 +55,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `PathSpringFilenameUtils` | non | nettoyage `FilenameUtils.getName` |
 | `PathSpringEsapiValidator` | non | nettoyage ESAPI `getValidFileName` |
 
-### `xss` : cross-site scripting (6 cas)
+### `xss` : cross-site scripting (7 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -65,6 +65,36 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `XssSpringHtmlUtils` | non | nettoyage Spring `HtmlUtils.htmlEscape` |
 | `XssServletOwaspEncoder` | non | nettoyage OWASP Java Encoder `Encode.forHtml` |
 | `XssServletFileWriter` | non | `PrintWriter` vers un fichier de log : pas la réponse HTTP |
+| `XssServletSplit` | oui | `split(" ")[0]` : Joern perd la donnée, retrouvée par un pont (`Flows.scala`) |
+
+### `xxe` : XML External Entity (22 cas)
+
+BenchmarkJava ne contient aucun cas XXE : ce labo est la seule mesure de cette règle.
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `XxeServletDocumentBuilder` | oui | DOM (`DocumentBuilderFactory`) par défaut |
+| `XxeServletInlineFactory` | oui | `newInstance().newDocumentBuilder().parse(...)` d'un seul bloc |
+| `XxeServletTransformer` | oui | XSLT (`Transformer.transform`) par défaut |
+| `XxeSpringSaxParser` | oui | SAX (`SAXParser.parse`) par défaut |
+| `XxeSpringXmlInputFactory` | oui | StAX (`XMLInputFactory`) par défaut, fichier envoyé (`MultipartFile`) |
+| `XxeSpringDom4j` | oui | dom4j (`SAXReader`) par défaut |
+| `XxeSpringJdom2` | oui | JDOM2 (`SAXBuilder`) par défaut |
+| `XxeSpringXPathInputSource` | oui | `XPath.evaluate(expr, InputSource)` : parseur interne non protégeable |
+| `XxeSpringSchemaValidator` | oui | `Validator.validate` par défaut |
+| `XxeSpringFeatureFalse` | oui | `disallow-doctype-decl` à **false** : la valeur compte |
+| `XxeSpringExpandEntitiesOnly` | oui | `setExpandEntityReferences(false)` seul : insuffisant selon l'OWASP |
+| `XxeSpringOnlyGeneralEntities` | oui | entités générales désactivées, mais pas les entités paramètres |
+| `XxeServletDisallowDoctype` | non | `disallow-doctype-decl` à true |
+| `XxeServletConstantXml` | non | parseur non protégé, mais XML constant |
+| `XxeSpringSecureProcessing` | non | `FEATURE_SECURE_PROCESSING` à true |
+| `XxeSpringAccessExternalDtd` | non | `ACCESS_EXTERNAL_DTD` à `""` |
+| `XxeSpringStaxNoDtd` | non | StAX : `SUPPORT_DTD` à false |
+| `XxeSpringExternalEntitiesOff` | non | SAX : entités générales **et** paramètres désactivées |
+| `XxeSpringDom4jSafe` | non | dom4j : `disallow-doctype-decl` à true |
+| `XxeSpringFieldFactory` | non | fabrique protégée dans le constructeur (champ) |
+| `XxeSpringHelperFactory` | non | fabrique protégée dans une méthode utilitaire |
+| `XxeSpringSchemaSecure` | non | `SchemaFactory` avec `FEATURE_SECURE_PROCESSING` |
 
 ## Mesure
 
@@ -75,4 +105,5 @@ python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/e
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule cmdi
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule pathtraver
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule xss
+python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule xxe
 ```
