@@ -53,3 +53,11 @@ XxeSpringDom4jSafe,xxe,false,611
 XxeSpringFieldFactory,xxe,false,611
 XxeSpringHelperFactory,xxe,false,611
 XxeSpringSchemaSecure,xxe,false,611
+LdapiServletDirContext,ldapi,true,90
+LdapiServletFilterArgs,ldapi,false,90
+LdapiServletEsapi,ldapi,false,90
+LdapiSpringLdapTemplate,ldapi,true,90
+LdapiSpringQueryFilter,ldapi,true,90
+LdapiSpringQueryWhere,ldapi,false,90
+LdapiSpringLdapEncoder,ldapi,false,90
+LdapiSpringUnboundId,ldapi,true,90

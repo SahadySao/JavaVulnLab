@@ -1,0 +1,28 @@
+# CPG Joern générés
+/Projets/*
+!/Projets/.gitkeep
+/Rapport/*
+/Tests/Rapport/*
+
+# Rapports générés
+Projets/*/Rapport_*.json
+output/
+*.json
+
+# Fichiers temporaires et éditeurs
+*.tmp
+*~
+.DS_Store
+.idea/
+.vscode/
+
+# Métadonnées de l'éditeur Scala
+.metals/
+.bloop/
+.scala-build/
+target/
+
+# Fichier py cache
+__pycache__/
+*.py[cod]
+

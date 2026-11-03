@@ -9,7 +9,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 ## Règles
 
 - Un cas = un fichier `.java` = une ligne dans `expected.csv`.
-- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`, `Xxe`) pour rester unique.
+- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`, `Xxe`, `Ldapi`) pour rester unique.
 - Les cas sont rangés par vulnérabilité, puis par technologie : `vulnlab/<vulnérabilité>/<techno>/`.
 - `vulnlab/common/` contient les classes utilitaires, qui ne sont pas des cas.
 
@@ -96,6 +96,19 @@ BenchmarkJava ne contient aucun cas XXE : ce labo est la seule mesure de cette r
 | `XxeSpringHelperFactory` | non | fabrique protégée dans une méthode utilitaire |
 | `XxeSpringSchemaSecure` | non | `SchemaFactory` avec `FEATURE_SECURE_PROCESSING` |
 
+### `ldapi` : injection LDAP (8 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `LdapiServletDirContext` | oui | JNDI `DirContext.search` avec un filtre concaténé |
+| `LdapiServletFilterArgs` | non | JNDI, filtre paramétré `{0}` : valeur échappée par l'API |
+| `LdapiServletEsapi` | non | nettoyage ESAPI `encodeForLDAP` |
+| `LdapiSpringLdapTemplate` | oui | Spring `LdapTemplate.search(base, filtre, mapper)` concaténé |
+| `LdapiSpringQueryFilter` | oui | Spring `LdapQueryBuilder.filter(...)` concaténé |
+| `LdapiSpringQueryWhere` | non | Spring `where("uid").is(uid)` : valeur échappée |
+| `LdapiSpringLdapEncoder` | non | nettoyage Spring `LdapEncoder.filterEncode` |
+| `LdapiSpringUnboundId` | oui | UnboundID `Filter.create(...)` concaténé |
+
 ## Mesure
 
 Depuis la racine de Tiresias :
@@ -106,4 +119,5 @@ python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/e
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule pathtraver
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule xss
 python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule xxe
+python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule ldapi
 ```
