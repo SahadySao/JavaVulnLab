@@ -9,7 +9,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 ## Règles
 
 - Un cas = un fichier `.java` = une ligne dans `expected.csv`.
-- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`, `Xxe`, `Ldapi`) pour rester unique.
+- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`, `Xxe`, `Ldapi`, `Deser`) pour rester unique.
 - Les cas sont rangés par vulnérabilité, puis par technologie : `vulnlab/<vulnérabilité>/<techno>/`.
 - `vulnlab/common/` contient les classes utilitaires, qui ne sont pas des cas.
 
@@ -115,15 +115,42 @@ BenchmarkJava ne contient aucun cas XXE : ce labo est la seule mesure de cette r
 | `LdapiSpringLdapEncoder` | non | nettoyage Spring `LdapEncoder.filterEncode` |
 | `LdapiSpringUnboundId` | oui | UnboundID `Filter.create(...)` concaténé |
 
+### `deser` : désérialisation non sûre (21 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `DeserServletObjectInputStream` | oui | `ObjectInputStream` sur le corps de la requête, cast après coup |
+| `DeserServletObjectInputFilter` | non | JEP 290 : `setObjectInputFilter` en liste blanche (`...;!*`) |
+| `DeserServletFilterAllowAll` | oui | filtre posé mais qui accepte tout (`*`) |
+| `DeserServletLookAhead` | non | sous-classe du projet : `resolveClass` refuse les classes inconnues |
+| `DeserServletLoggingStream` | oui | sous-classe qui redéfinit `resolveClass` sans rien refuser |
+| `DeserServletValidatingOis` | non | Commons IO `ValidatingObjectInputStream` + `accept(Order.class)` |
+| `DeserServletConstantData` | non | flux non filtré, mais octets d'une ressource embarquée |
+| `DeserSpringCookieBase64` | oui | objet sérialisé en Base64 dans un cookie |
+| `DeserSpringXmlDecoder` | oui | `java.beans.XMLDecoder` : toujours dangereux |
+| `DeserSpringXStream` | oui | XStream sans liste blanche (≤ 1.4.17) |
+| `DeserSpringXStreamAllowTypes` | non | XStream : `allowTypes` dans le constructeur (champ) |
+| `DeserSpringXStreamAnyType` | oui | XStream : `addPermission(AnyTypePermission.ANY)` rouvre tout |
+| `DeserSpringSnakeYaml` | oui | SnakeYAML `new Yaml().load(...)` (1.x) |
+| `DeserSpringSnakeYamlSafe` | non | SnakeYAML avec `SafeConstructor` |
+| `DeserSpringJacksonDefaultTyping` | oui | Jackson `enableDefaultTyping()` |
+| `DeserSpringJacksonLaissezFaire` | oui | Jackson `activateDefaultTyping(LaissezFaire...)` via le builder, dans un champ |
+| `DeserSpringJacksonPlain` | non | Jackson par défaut, classe fixée par le code |
+| `DeserSpringJacksonTypeInfo` | oui | `@JsonTypeInfo(use = Id.CLASS)` sur un champ `Object` de la classe cible |
+| `DeserSpringCommonsLang` | oui | Commons Lang `SerializationUtils.deserialize` |
+| `DeserSpringKryo` | oui | Kryo `setRegistrationRequired(false)` |
+| `DeserSpringKryoRegistered` | non | Kryo 5 par défaut : classes enregistrées seulement |
+
 ## Mesure
 
 Depuis la racine de Tiresias :
 
 ```bash
-python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule sqli
-python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule cmdi
-python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule pathtraver
-python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule xss
-python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule xxe
-python -m Tests.benchmark ~/gitRep/JavaVulnLab --expected ~/gitRep/JavaVulnLab/expected.csv --rule ldapi
+python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule sqli
+python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule cmdi
+python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule pathtraver
+python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule xss
+python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule xxe
+python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule ldapi
+python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule deser
 ```
