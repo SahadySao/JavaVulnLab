@@ -1,9 +1,12 @@
 package vulnlab.common;
 
-/** Objet lié par Spring à partir de la requête (@ModelAttribute ou @RequestBody). */
+/** Objet de formulaire Spring MVC (@ModelAttribute). */
 public class SearchForm {
-    private String name;
+    private String keyword;
+    private Integer page;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getKeyword() { return keyword; }
+    public void setKeyword(String keyword) { this.keyword = keyword; }
+    public Integer getPage() { return page; }
+    public void setPage(Integer page) { this.page = page; }
 }

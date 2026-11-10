@@ -101,7 +101,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `PathServletContextResource` | oui | `getServletContext().getResourceAsStream("/WEB-INF/reports/" + name)` |
 | `PathSpringClassPathResource` | oui | `new ClassPathResource("templates/" + name)` |
 
-### `xss` : cross-site scripting (8 cas)
+### `xss` : cross-site scripting (29 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -113,6 +113,27 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `XssServletFileWriter` | non | `PrintWriter` vers un fichier de log : pas la réponse HTTP |
 | `XssServletSplit` | oui | `split(" ")[0]` : Joern perd la donnée, retrouvée par un pont (`Flows.scala`) |
 | `XssSpringJsoupClean` | non | `Jsoup.clean(comment, Safelist.basic())` |
+| `XssJspParamEl` | oui | JSP : `${param.q}` dans le texte |
+| `XssJspCOut` | non | JSP : `<c:out value="${param.q}"/>` |
+| `XssJspEscapeXml` | non | JSP : `${fn:escapeXml(param.q)}` |
+| `XssJspCOutUnescaped` | oui | JSP : `<c:out ... escapeXml="false"/>` |
+| `XssJspScriptlet` | oui | JSP : `<%= request.getParameter("name") %>` |
+| `XssJspScriptletEncoded` | non | JSP : `<%= Encode.forHtml(...) %>` |
+| `XssJspScriptletLocal` | oui | JSP : variable de scriptlet issue de `getParameter` |
+| `XssJspCSet` | oui | JSP : `<c:set var="query" value="${param.q}"/>` puis `value="${query}"` |
+| `XssJspModelAttr` | oui | contrôleur `model.addAttribute("message", ...)` + vue `${message}` |
+| `XssJspModelAttrCOut` | non | idem, vue avec `<c:out>` |
+| `XssJspModelAttrOtherView` | non | la JSP écrit `${otherMessage}`, mais le contrôleur renvoie une autre vue |
+| `XssJspFormObject` | oui | `@ModelAttribute("search")` + vue `${search.keyword}` |
+| `XssJspFormObjectInt` | non | objet de formulaire implicite, la vue n'écrit qu'un `Integer` |
+| `XssServletForward` | oui | servlet `request.setAttribute` + forward, JSP `<%= request.getAttribute(...) %>` |
+| `XssTagHandler` | oui | balise Java `SimpleTagSupport` qui écrit son attribut, utilisée avec `${param.comment}` |
+| `XssTagFile` | oui | fichier `.tag` qui écrit `${text}`, utilisé avec `${param.label}` |
+| `XssRestString` | oui | `@RestController` qui renvoie une `String` HTML |
+| `XssRestStringJson` | non | idem avec `produces = APPLICATION_JSON_VALUE` |
+| `XssRestStringEscaped` | non | idem avec `HtmlUtils.htmlEscape` |
+| `XssResponseBodyEntity` | oui | `@ResponseBody ResponseEntity<String>` |
+| `XssControllerView` | non | `@Controller` sans `@ResponseBody` : la `String` est un nom de vue |
 
 ### `xxe` : XML External Entity (31 cas)
 

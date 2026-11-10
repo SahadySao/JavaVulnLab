@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="https://jakarta.ee/xml/ns/jakartaee" version="3.0">
+  <tlib-version>1.0</tlib-version>
+  <short-name>lab</short-name>
+  <uri>http://vulnlab/tags</uri>
+  <tag>
+    <name>raw</name>
+    <tag-class>vulnlab.xss.jsp.XssTagHandler</tag-class>
+    <body-content>empty</body-content>
+    <attribute><name>value</name><rtexprvalue>true</rtexprvalue></attribute>
+  </tag>
+</taglib>
