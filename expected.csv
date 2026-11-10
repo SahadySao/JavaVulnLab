@@ -202,3 +202,13 @@ XssRestStringJson,xss,false,79
 XssRestStringEscaped,xss,false,79
 XssResponseBodyEntity,xss,true,79
 XssControllerView,xss,false,79
+XssJsfEscapeFalse,xss,true,79
+XssJsfEscaped,xss,false,79
+XssJsfViewParam,xss,true,79
+XssJsfRequestParamMap,xss,true,79
+XssJsfManagedProperty,xss,true,79
+XssJsfOutputLink,xss,true,79
+XssJsfIntegerProp,xss,false,79
+XssJsfParam,xss,true,79
+SqliJsfBean,sqli,true,89
+SqliJsfRequestParamMap,sqli,true,89

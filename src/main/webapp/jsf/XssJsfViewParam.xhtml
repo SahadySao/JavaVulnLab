@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+<!-- Paramètre d'URL ?msg=... lié par f:viewParam, réécrit sans échappement -->
+<f:metadata>
+  <f:viewParam name="msg" value="#{messageBean.msg}"/>
+</f:metadata>
+<h:body>
+  <h:outputText value="#{messageBean.msg}" escape="false"/>
+</h:body>
+</html>

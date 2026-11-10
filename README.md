@@ -15,7 +15,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 
 ## Cas
 
-### `sqli` : injection SQL (37 cas)
+### `sqli` : injection SQL (39 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -60,6 +60,8 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `SqliMyBatisXml` | oui | mapper XML : `ORDER BY ${sort}` |
 | `SqliMyBatisXmlHash` | non | mapper XML : `#{customer}` |
 | `SqliBatchItemProcessor` | oui | **batch** : ligne de fichier concaténée dans une requête. Attendu en FN, dans `aVerifier` |
+| `SqliJsfBean` | oui | JSF : propriété saisie (`#{invoiceSearchBean.keyword}`) concaténée dans `createNativeQuery` |
+| `SqliJsfRequestParamMap` | oui | JSF : `getRequestParameterMap().get("id")` concaténé dans une requête |
 
 ### `cmdi` : injection de commandes (8 cas)
 
@@ -101,7 +103,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `PathServletContextResource` | oui | `getServletContext().getResourceAsStream("/WEB-INF/reports/" + name)` |
 | `PathSpringClassPathResource` | oui | `new ClassPathResource("templates/" + name)` |
 
-### `xss` : cross-site scripting (29 cas)
+### `xss` : cross-site scripting (37 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -134,6 +136,14 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `XssRestStringEscaped` | non | idem avec `HtmlUtils.htmlEscape` |
 | `XssResponseBodyEntity` | oui | `@ResponseBody ResponseEntity<String>` |
 | `XssControllerView` | non | `@Controller` sans `@ResponseBody` : la `String` est un nom de vue |
+| `XssJsfEscapeFalse` | oui | JSF : `h:inputTextarea` lié à `#{commentBean.comment}`, réécrit avec `escape="false"` |
+| `XssJsfEscaped` | non | JSF : même chose sans `escape="false"` (échappé) |
+| `XssJsfViewParam` | oui | JSF : `f:viewParam` puis `escape="false"` |
+| `XssJsfRequestParamMap` | oui | JSF : getter calculé avec `getRequestParameterMap().get("name")` |
+| `XssJsfManagedProperty` | oui | JSF : `@ManagedProperty("#{param.title}")` |
+| `XssJsfOutputLink` | oui | JSF : `h:outputLink value="#{profileBean.website}"` (URL `javascript:`) |
+| `XssJsfIntegerProp` | non | JSF : propriété `Integer` réécrite avec `escape="false"` |
+| `XssJsfParam` | oui | JSF : `#{param.q}` avec `escape="false"` |
 
 ### `xxe` : XML External Entity (31 cas)
 
