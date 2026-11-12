@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+<!-- Liste non éditable : JSF refuse une valeur absente des options -->
+<h:body>
+  <h:form>
+    <h:selectOneMenu value="#{countryBean.region}">
+      <f:selectItem itemValue="Nord"/>
+    </h:selectOneMenu>
+  </h:form>
+  <h:outputText value="#{countryBean.region}" escape="false"/>
+</h:body>
+</html>

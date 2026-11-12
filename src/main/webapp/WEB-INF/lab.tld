@@ -9,4 +9,10 @@
     <body-content>empty</body-content>
     <attribute><name>value</name><rtexprvalue>true</rtexprvalue></attribute>
   </tag>
+  <tag>
+    <name>rawInherited</name>
+    <tag-class>vulnlab.xss.jsp.XssTagHandlerInherited</tag-class>
+    <body-content>empty</body-content>
+    <attribute><name>text</name><rtexprvalue>true</rtexprvalue></attribute>
+  </tag>
 </taglib>

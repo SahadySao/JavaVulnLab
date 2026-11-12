@@ -15,7 +15,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 
 ## Cas
 
-### `sqli` : injection SQL (39 cas)
+### `sqli` : injection SQL (40 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -62,6 +62,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `SqliBatchItemProcessor` | oui | **batch** : ligne de fichier concaténée dans une requête. Attendu en FN, dans `aVerifier` |
 | `SqliJsfBean` | oui | JSF : propriété saisie (`#{invoiceSearchBean.keyword}`) concaténée dans `createNativeQuery` |
 | `SqliJsfRequestParamMap` | oui | JSF : `getRequestParameterMap().get("id")` concaténé dans une requête |
+| `SqliSpringInheritedEntityManager` | oui | `entityManager` déclaré dans la classe mère `AbstractLabRepository` |
 
 ### `cmdi` : injection de commandes (8 cas)
 
@@ -103,7 +104,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `PathServletContextResource` | oui | `getServletContext().getResourceAsStream("/WEB-INF/reports/" + name)` |
 | `PathSpringClassPathResource` | oui | `new ClassPathResource("templates/" + name)` |
 
-### `xss` : cross-site scripting (37 cas)
+### `xss` : cross-site scripting (50 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -144,6 +145,19 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `XssJsfOutputLink` | oui | JSF : `h:outputLink value="#{profileBean.website}"` (URL `javascript:`) |
 | `XssJsfIntegerProp` | non | JSF : propriété `Integer` réécrite avec `escape="false"` |
 | `XssJsfParam` | oui | JSF : `#{param.q}` avec `escape="false"` |
+| `XssJspFmtParam` | oui | `<fmt:param value="${param.name}"/>` (fmt:message n'échappe rien) |
+| `XssJspSpringMessage` | oui | `<spring:message arguments="${param.name}"/>` |
+| `XssJspSpringMessageEscaped` | non | idem avec `htmlEscape="true"` |
+| `XssJspEscapedUrl` | oui | `href="<c:out value='${param.next}'/>"` : échappé, mais `javascript:` passe |
+| `XssJspFixedUrl` | non | `href="/factures/${fn:escapeXml(param.id)}"` |
+| `XssJspEventHandler` | oui | `onclick="f('${fn:escapeXml(param.id)}')"` : attendu dans `aVerifier` (FN) |
+| `XssJspScriptQuoted` | non | `<script>var q = '${fn:escapeXml(param.q)}';</script>` |
+| `XssJspModelAddAll` | oui | `model.addAllAttributes(map)` + vue `${greeting}` |
+| `XssJspModelAttributeMethod` | oui | méthode `@ModelAttribute("lastSearch")` + vue `${lastSearch}` |
+| `XssTagHandlerInherited` | oui | balise Java héritant de `LabBaseTag extends SimpleTagSupport` |
+| `XssJsfModelBean` | oui | JSF : bean `@Model`, `escape="false"` |
+| `XssJsfEditableSelect` | oui | JSF : `p:selectOneMenu editable="true"`, `escape="false"` |
+| `XssJsfSelectNotEditable` | non | JSF : `h:selectOneMenu` (valeur contrôlée par JSF), `escape="false"` |
 
 ### `xxe` : XML External Entity (31 cas)
 
@@ -292,3 +306,75 @@ python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab
 python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule ssrf
 python -m Tests.benchmark ~/gitdepo/JavaVulnLab --expected ~/gitdepo/JavaVulnLab/expected.csv --rule zipslip
 ```
+
+### `vue` : points suspects Vue.js (9 cas)
+
+Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » comptent comme détections.
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `VueVHtml` | oui | `v-html="comment.body"` |
+| `VueVHtmlSanitized` | non | `v-html` d'une propriété calculée avec `DOMPurify.sanitize` |
+| `VueMustache` | non | `{{ comment.body }}` (échappé) |
+| `VueDynamicHref` | oui | `:href="profile.website"` |
+| `VueStaticHref` | non | `` :href="`/factures/${id}`" ``, `:src="'/img/' + logo"` |
+| `VueDynamicTemplate` | oui | ``template: `<h1>${title}</h1>` `` |
+| `VueInnerHtml` | oui | `this.$refs.box.innerHTML = this.message` |
+| `VueRedirect` | oui | `window.location.href = returnUrl` |
+| `VueSafeDom` | non | `textContent`, `innerHTML = ''`, `setTimeout(() => ...)`, redirection fixe |
+
+### `expr` : injection d'expression ou de script (12 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `ExprSpelParse` | oui | `parser.parseExpression(formula).getValue()` |
+| `ExprSpelSimpleContext` | non | SpEL évalué avec `SimpleEvaluationContext.forReadOnlyDataBinding()` |
+| `ExprSpelVariable` | non | expression fixe `#name.toUpperCase()`, valeur passée en variable |
+| `ExprElProcessor` | oui | `new ELProcessor().eval(expression)` |
+| `ExprValidatorTemplate` | oui | `buildConstraintViolationWithTemplate("..." + value)` sans version de HV connue : attendu dans `aVerifier` (FN) |
+| `ExprValidatorParameter` | non | valeur passée par `addMessageParameter`, gabarit fixe `{value}` |
+| `ExprScriptEngine` | oui | `ScriptEngine.eval("..." + rule + "...")` |
+| `ExprValidatorTemplateEl` | oui | message construit avec la valeur + `enableExpressionLanguage(...)` |
+| `ExprSpelSimpleContextMethods` | oui | `SimpleEvaluationContext...withInstanceMethods()` |
+| `ExprElFactoryChain` | oui | `getApplication().getExpressionFactory().createValueExpression(..., expr, ...)` |
+| `ExprGroovyEvalX` | oui | `Eval.x(42, formula)` : l'expression est le 2e argument |
+| `ExprGroovyEvalXData` | non | `Eval.x(label, "x.toUpperCase()")` |
+
+### `jndi` : injection JNDI (8 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `JndiLookup` | oui | `new InitialContext().lookup(resource)` |
+| `JndiTemplateLookup` | oui | Spring `JndiTemplate.lookup(name)` |
+| `JndiFixedPrefix` | non | `lookup("java:comp/env/jdbc/" + datasource)` |
+| `JndiAllowlist` | non | liste blanche avant `lookup(name)` |
+| `JndiDoLookup` | oui | `InitialContext.doLookup(name)` |
+| `JndiProviderUrl` | oui | `env.put(Context.PROVIDER_URL, server)` |
+| `JndiProviderUrlFixed` | non | `env.put(Context.PROVIDER_URL, "ldap://annuaire.interne:389/" + unit)` |
+| `JndiJmx` | oui | `new JMXServiceURL(target)` |
+
+### `redirect` : redirection ouverte (9 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `RedirectSendRedirect` | oui | `response.sendRedirect(returnUrl)` |
+| `RedirectSpringView` | oui | `return "redirect:" + next` |
+| `RedirectSlashOnly` | oui | `return "redirect:/" + path` (`//pirate.fr`) |
+| `RedirectFixedPath` | non | `return "redirect:/factures/" + id` |
+| `RedirectRelativeCheck` | non | `startsWith("/")` et refus de `//` avant `sendRedirect` |
+| `RedirectLocationHeader` | oui | `setHeader("Location", url)` |
+| `RedirectJaxrs` | oui | `Response.seeOther(URI.create(url))` |
+| `RedirectJspTag` | oui | `<c:redirect url="${param.next}"/>` |
+| `NomVueRedirect` | non | `"redirect:/accueil?retour=" + back` (hôte fixe) |
+
+### `nomvue` : nom de vue ou page incluse choisi par l'utilisateur (6 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `XssControllerView` | oui | `return "sections/" + section` (`@Controller`) |
+| `NomVueModelAndView` | oui | `new ModelAndView("pages/" + page)` |
+| `NomVueAllowlist` | non | liste blanche avant `return "help/" + section` |
+| `NomVueRedirect` | non | `"redirect:..."` : redirection, pas un nom de vue |
+| `NomVueJspInclude` | oui | `<jsp:include page="${param.section}"/>` |
+| `NomVueJsfInclude` | oui | `<ui:include src="#{param.view}"/>` |
+
