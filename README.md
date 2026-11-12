@@ -9,7 +9,7 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 ## Règles
 
 - Un cas = un fichier `.java` = une ligne dans `expected.csv`.
-- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`, `Xxe`, `Ldapi`, `Deser`, `Ssrf`, `SsrfPartial` pour les cas d'hôte fixé, `ZipSlip`) pour rester unique.
+- Le nom du cas est le nom du fichier qui contient le sink. Il commence par la vulnérabilité (`Sqli`, `Cmdi`, `Path`, `Xss`, `Xxe`, `Ldapi`, `Deser`, `Ssrf`, `SsrfPartial` pour les cas d'hôte fixé, `ZipSlip`, `Entete`, `Journal`...) pour rester unique.
 - Les cas sont rangés par vulnérabilité, puis par technologie : `vulnlab/<vulnérabilité>/<techno>/`.
 - `vulnlab/common/` contient les classes utilitaires, qui ne sont pas des cas. Un fichier `...Controller` à côté d'un cas sert seulement à l'appeler : le cas est le fichier qui contient le sink.
 
@@ -379,4 +379,35 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `NomVueRedirect` | non | `"redirect:..."` : redirection, pas un nom de vue |
 | `NomVueJspInclude` | oui | `<jsp:include page="${param.section}"/>` |
 | `NomVueJsfInclude` | oui | `<ui:include src="#{param.view}"/>` |
+
+### `entete` : en-tête de réponse HTTP choisi par l'utilisateur (10 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `EnteteServletCustom` | oui | `setHeader("X-Request-Source", param)` (servlet) |
+| `EnteteCorsReflect` | oui | `Access-Control-Allow-Origin` recopie `@RequestHeader("Origin")` |
+| `EnteteCorsAllowlist` | non | origine vérifiée par `ALLOWED_ORIGINS.contains(origin)` |
+| `EnteteContentDisposition` | oui | `ResponseEntity...header(CONTENT_DISPOSITION, "attachment; filename=\"" + name + "\"")` |
+| `EnteteContentDispositionEncoded` | non | nom passé par `URLEncoder.encode` |
+| `EnteteContentType` | oui | `response.setContentType(type)` |
+| `EnteteNameChosen` | oui | `addHeader(header, "1")` : nom choisi par l'utilisateur |
+| `EnteteJaxrs` | oui | JAX-RS `Response.ok().header("X-Trace-Id", trace)` |
+| `EnteteSpringHttpHeaders` | oui | `HttpHeaders.add("Refresh", "0;url=" + next)` |
+| `EnteteNumeric` | non | paramètre `int` |
+
+### `journal` : injection dans les journaux (11 cas)
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `JournalSlf4jConcat` | oui | SLF4J, message concaténé |
+| `JournalSlf4jParam` | oui | SLF4J paramétré `{}` (non échappé) |
+| `JournalLog4j2` | oui | Log4j 2 |
+| `JournalJul` | oui | `java.util.logging`, `log(Level.INFO, ...)`, servlet |
+| `JournalLombok` | oui | Lombok `@Slf4j` (champ `log` généré) |
+| `JournalOnlyLf` | oui | seul `\n` retiré, `\r` reste |
+| `JournalHtmlEscape` | oui | `HtmlUtils.htmlEscape` : laisse les retours à la ligne |
+| `JournalCrlfRemoved` | non | `replaceAll("[\r\n]", "_")` |
+| `JournalEscapeJava` | non | `StringEscapeUtils.escapeJava` |
+| `JournalNumeric` | non | `@PathVariable long` |
+| `JournalConstantMessage` | non | message constant, la donnée n'est pas journalisée |
 
