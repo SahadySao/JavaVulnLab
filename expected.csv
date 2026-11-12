@@ -270,3 +270,5 @@ NomVueAllowlist,nomvue,false,1336
 NomVueRedirect,nomvue,false,1336
 NomVueJspInclude,nomvue,true,98
 NomVueJsfInclude,nomvue,true,98
+SsrfSpringProxyPath,ssrf,true,918
+SsrfSpringBodyNotUrl,ssrf,false,918

@@ -239,7 +239,7 @@ BenchmarkJava ne contient aucun cas XXE : ce labo est la seule mesure de cette r
 | `DeserBatchTasklet` | oui | **batch** : `ObjectInputStream` sur un fichier déposé. Attendu en FN, dans la rubrique `aVerifier` |
 | `DeserJmsObjectMessage` | oui | **écouteur JMS** : `ObjectMessage.getObject()`. Attendu en FN, dans `aVerifier` |
 
-### `ssrf` : requête côté serveur (35 cas)
+### `ssrf` : requête côté serveur (37 cas)
 
 La colonne « Portée » indique ce que l'utilisateur contrôle : l'**hôte** (SSRF complète), le **chemin** ou les **paramètres** (SSRF partielle, l'hôte étant fixé par le code ou la configuration).
 
@@ -280,6 +280,8 @@ La colonne « Portée » indique ce que l'utilisateur contrôle : l'**hôte** (S
 | `SsrfSpringIdRegex` | non | | hôte fixé, `id.matches("[a-zA-Z0-9_-]{1,40}")` |
 | `SsrfSpringDtoInteger` | non | | champ `Integer` d'un DTO Lombok dans les paramètres |
 | `SsrfSpringDtoString` | oui | paramètres | champ `String` du même DTO |
+| `SsrfSpringProxyPath` | oui | proxy : `backendUrl + request.getRequestURI().substring(...)` dans deux gestionnaires (portée chemin, un résultat regroupé) |
+| `SsrfSpringBodyNotUrl` | non | corps reçu envoyé en 2e argument de `postForObject`, URL de configuration (filtre ArgumentVoisin) |
 
 ### `zipslip` : nom d'une entrée d'archive dans un chemin (5 cas)
 
