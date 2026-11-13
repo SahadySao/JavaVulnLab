@@ -1,0 +1,14 @@
+# Cas configsecu : profil correct
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+server:
+  error:
+    include-stacktrace: never
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: true

@@ -462,6 +462,34 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `BoplaJsonView` | non | `@JsonView` sur le gestionnaire |
 | `BoplaNotSaved` | non | `@RequestBody Member` lu, jamais enregistré |
 
+### `configsecu` : configuration de sécurité (21 cas)
+
+Chaque chaîne Spring Security des cas est limitée à son chemin (`securityMatcher("/configsecu/...")`). Les deux derniers cas sont des fichiers de propriétés : `src/main/resources/application-configsecu.properties` et `application-safe.yml`.
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `ConfigCsrfDisabledSession` | oui | `csrf(csrf -> csrf.disable())` avec `formLogin` |
+| `ConfigCsrfDisabledStateless` | non | `csrf(AbstractHttpConfigurer::disable)`, API `STATELESS` en HTTP Basic |
+| `ConfigPermitAllAnyRequest` | oui | `anyRequest().permitAll()` |
+| `ConfigFrameOptionsDisabled` | oui | `frameOptions(frame -> frame.disable())` |
+| `ConfigSessionFixationNone` | oui | `sessionFixation(fixation -> fixation.none())` |
+| `ConfigSecureChain` | non | chaîne correcte, `frameOptions(... sameOrigin())` |
+| `ConfigCorsWildcardCredentials` | oui | `setAllowedOriginPatterns(List.of("*"))` + `setAllowCredentials(true)` |
+| `ConfigCorsAllowlist` | non | origine précise avec cookies |
+| `ConfigCrossOriginAnnotation` | oui | `@CrossOrigin(originPatterns = "*", allowCredentials = "true")` |
+| `ConfigNoOpEncoder` | oui | `NoOpPasswordEncoder.getInstance()` |
+| `ConfigBcrypt` | non | `new BCryptPasswordEncoder()` |
+| `ConfigMd5Password` | oui | `MessageDigest.getInstance("MD5")` dans `hashPassword` |
+| `ConfigSha256Checksum` | non | SHA-256 d'un contenu, pas un mot de passe |
+| `ConfigIgnoringApi` | oui | `web.ignoring()` sur une API |
+| `ConfigIgnoringStatic` | non | `web.ignoring()` sur css, js, favicon |
+| `ConfigDebug` | oui | `@EnableWebSecurity(debug = true)` |
+| `ConfigJwtHardcodedSecret` | oui | `setSigningKey(Keys.hmacShaKeyFor("...".getBytes()))` |
+| `ConfigJwtUnsigned` | oui | `parseClaimsJwt(token)` |
+| `ConfigJwtFromProperty` | non | secret `@Value("${jwt.secret}")` |
+| `application-configsecu` | oui | Actuator `*`, console H2, pile d'erreur, cookie sans HttpOnly |
+| `application-safe` | non | YAML : `health, info`, `include-stacktrace: never`, cookie sécurisé |
+
 ### `journal` : injection dans les journaux (11 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
