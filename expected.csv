@@ -293,3 +293,15 @@ JournalEscapeJava,journal,false,117
 JournalHtmlEscape,journal,true,117
 JournalNumeric,journal,false,117
 JournalConstantMessage,journal,false,117
+BflaAdminByUrl,bfla,false,285
+BflaAdminAuthenticatedOnly,bfla,true,285
+BflaReportsVerbGap,bfla,true,285
+BflaReportsGetOk,bfla,false,285
+BflaMissingPreAuthorize,bfla,true,862
+BflaPreAuthorizeAll,bfla,false,862
+BflaPublicReset,bfla,true,862
+BflaPublicContact,bfla,false,862
+BflaProgrammaticCheck,bfla,false,285
+BflaJaxrsMissingRole,bfla,true,862
+BflaServletAdmin,bfla,false,285
+BflaServletPurge,bfla,true,862

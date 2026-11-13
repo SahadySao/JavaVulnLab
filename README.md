@@ -395,6 +395,25 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `EnteteSpringHttpHeaders` | oui | `HttpHeaders.add("Refresh", "0;url=" + next)` |
 | `EnteteNumeric` | non | paramètre `int` |
 
+### `bfla` : contrôle d'accès aux fonctions (12 cas)
+
+`vulnlab/bfla/SecurityConfig.java` (pas un cas) limite une chaîne Spring Security à `/bfla/**` : `/bfla/admin/**` → ADMIN, `GET /bfla/reports/**` → MANAGER, `/bfla/public/**` → permitAll, le reste → authentifié, avec `@EnableMethodSecurity`. `src/main/webapp/WEB-INF/web.xml` exige ADMIN sur `/legacy/admin/*`.
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `BflaAdminByUrl` | non | `DELETE /bfla/admin/users/{id}` : rôle par la règle d'URL |
+| `BflaAdminAuthenticatedOnly` | oui | `POST /bfla/management/roles` : fonction d'administration, authentifié seulement |
+| `BflaReportsVerbGap` | oui | règle MANAGER pour GET seulement, `POST /bfla/reports/{id}/archive` |
+| `BflaReportsGetOk` | non | `GET /bfla/reports/{id}` : rôle MANAGER |
+| `BflaMissingPreAuthorize` | oui | `exportAll` sans `@PreAuthorize` alors que les autres méthodes l'ont |
+| `BflaPreAuthorizeAll` | non | toutes les méthodes avec `@PreAuthorize` |
+| `BflaPublicReset` | oui | `POST /bfla/public/reset-all-passwords` en permitAll |
+| `BflaPublicContact` | non | `POST /bfla/public/contact` en permitAll, pas sensible |
+| `BflaProgrammaticCheck` | non | `request.isUserInRole("ADMIN")` dans le gestionnaire |
+| `BflaJaxrsMissingRole` | oui | JAX-RS : `@RolesAllowed` sur `list`, oublié sur `deleteAll` |
+| `BflaServletAdmin` | non | servlet `/legacy/admin/stats` : rôle par `web.xml` |
+| `BflaServletPurge` | oui | servlet `/legacy/purge` : aucune contrainte |
+
 ### `journal` : injection dans les journaux (11 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
