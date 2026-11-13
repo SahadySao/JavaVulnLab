@@ -395,9 +395,9 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `EnteteSpringHttpHeaders` | oui | `HttpHeaders.add("Refresh", "0;url=" + next)` |
 | `EnteteNumeric` | non | paramètre `int` |
 
-### `bfla` : contrôle d'accès aux fonctions (12 cas)
+### `bfla` : contrôle d'accès aux fonctions (18 cas)
 
-`vulnlab/bfla/SecurityConfig.java` (pas un cas) limite une chaîne Spring Security à `/bfla/**` : `/bfla/admin/**` → ADMIN, `GET /bfla/reports/**` → MANAGER, `/bfla/public/**` → permitAll, le reste → authentifié, avec `@EnableMethodSecurity`. `src/main/webapp/WEB-INF/web.xml` exige ADMIN sur `/legacy/admin/*`.
+`vulnlab/bfla/SecurityConfig.java` (pas un cas) limite une chaîne Spring Security à `/bfla/**` : `/bfla/admin/**` → ADMIN, `GET /bfla/reports/**` → MANAGER, `/bfla/public/**` → permitAll, le reste → authentifié, avec `@EnableMethodSecurity`. `src/main/webapp/WEB-INF/web.xml` exige ADMIN sur `/legacy/admin/*`. `src/main/resources/legacy-security.xml` (lu par Tiresias, non chargé par l'application) configure `/legacy-xml/**` en XML.
 
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
@@ -413,6 +413,12 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `BflaJaxrsMissingRole` | oui | JAX-RS : `@RolesAllowed` sur `list`, oublié sur `deleteAll` |
 | `BflaServletAdmin` | non | servlet `/legacy/admin/stats` : rôle par `web.xml` |
 | `BflaServletPurge` | oui | servlet `/legacy/purge` : aucune contrainte |
+| `BflaServiceLayerRole` | non | contrôleur sans contrôle, `@PreAuthorize` sur la méthode du service appelée |
+| `BflaServiceLayerMissing` | oui | `/bfla/management/accounts/{id}/suspend` : ni contrôleur ni service ne vérifient le rôle |
+| `BflaServiceInterfaceImpl` | non | appel par une interface, `@PreAuthorize` sur l'implémentation |
+| `BflaMetaAnnotation` | non | annotation maison `@AdminOnly`, elle-même annotée `@PreAuthorize` |
+| `BflaXmlAdmin` | non | `/legacy-xml/admin/**` : `hasRole('ADMIN')` dans `src/main/resources/legacy-security.xml` |
+| `BflaXmlOpen` | oui | `/legacy-xml/**` en `permitAll` (XML) : suppression d'utilisateur ouverte |
 
 ### `journal` : injection dans les journaux (11 cas)
 

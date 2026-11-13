@@ -305,3 +305,9 @@ BflaProgrammaticCheck,bfla,false,285
 BflaJaxrsMissingRole,bfla,true,862
 BflaServletAdmin,bfla,false,285
 BflaServletPurge,bfla,true,862
+BflaServiceLayerRole,bfla,false,285
+BflaServiceLayerMissing,bfla,true,285
+BflaServiceInterfaceImpl,bfla,false,285
+BflaMetaAnnotation,bfla,false,285
+BflaXmlAdmin,bfla,false,285
+BflaXmlOpen,bfla,true,862
