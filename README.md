@@ -420,6 +420,28 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `BflaXmlAdmin` | non | `/legacy-xml/admin/**` : `hasRole('ADMIN')` dans `src/main/resources/legacy-security.xml` |
 | `BflaXmlOpen` | oui | `/legacy-xml/**` en `permitAll` (XML) : suppression d'utilisateur ouverte |
 
+### `bola` : accès à un objet sans contrôle du propriétaire (15 cas)
+
+`vulnlab/bola/Invoice.java` (entité) et `InvoiceRepository.java` (Spring Data) servent aux cas ; ils n'en sont pas.
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `BolaFindById` | oui | `@PathVariable Long id` -> `invoiceRepository.findById(id)` |
+| `BolaEntityManagerDelete` | oui | `em.find(Invoice.class, orderId)` puis `em.remove` |
+| `BolaServiceLayer` | oui | identifiant transmis à un service qui lit sans contrôle |
+| `BolaPrincipalUnused` | oui | `Principal` lu mais jamais comparé |
+| `BolaEntityBinding` | oui | `@PathVariable("id") Invoice invoice` chargée par Spring |
+| `BolaServletParam` | oui | servlet : `request.getParameter("accountId")` -> `accountDao.load(...)` |
+| `BolaRequestParamId` | oui | `@RequestParam("invoiceId")` -> `getReferenceById` |
+| `BolaOwnerFinder` | non | `findByIdAndOwner(id, principal.getName())` |
+| `BolaOwnerCompared` | non | propriétaire comparé, `AccessDeniedException` |
+| `BolaPostAuthorize` | non | `@PostAuthorize("returnObject.owner == authentication.name")` |
+| `BolaHasPermission` | non | `@PreAuthorize("hasPermission(#id, 'Invoice', 'read')")` |
+| `BolaAdminOnly` | non | réservé à `hasRole('ADMIN')` |
+| `BolaServiceOwnerCheck` | non | `@AuthenticationPrincipal`, comparaison dans le service |
+| `BolaNonIdParam` | non | recherche par titre, pas un identifiant |
+| `BolaExplicitCheck` | non | `ownershipService.checkOwnership(id)` avant la lecture |
+
 ### `journal` : injection dans les journaux (11 cas)
 
 | Cas | Vulnérable | Ce qui est testé |
