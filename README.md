@@ -442,6 +442,26 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `BolaNonIdParam` | non | recherche par titre, pas un identifiant |
 | `BolaExplicitCheck` | non | `ownershipService.checkOwnership(id)` avant la lecture |
 
+### `bopla` : propriétés d'objet modifiables ou exposées (13 cas)
+
+`vulnlab/bopla/Member.java` (entité sans protection), `SafeMember.java` (Jackson : `READ_ONLY`, `@JsonIgnore`), `Purchase.java` (liée à un `Member`) et `BoplaStore.java` (repositories) servent aux cas ; ils n'en sont pas.
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `BoplaRequestBodyEntity` | oui | `@RequestBody Member` puis `save` (role, balance, id, password modifiables) |
+| `BoplaModelAttributeEntity` | oui | `@ModelAttribute Member` puis `save` |
+| `BoplaImplicitBinding` | oui | paramètre `Member` sans annotation (`@Controller`) puis `save` |
+| `BoplaDto` | non | DTO `MemberUpdate`, seul l'email est recopié |
+| `BoplaJsonIgnoreSafe` | non | `SafeMember` : id et rôle `READ_ONLY`, mot de passe `@JsonIgnore` |
+| `BoplaInitBinder` | non | `@InitBinder` `setAllowedFields("email", "username")` |
+| `BoplaReturnEntity` | oui | `Member` renvoyé en JSON (mot de passe) |
+| `BoplaReturnResponseEntityList` | oui | `ResponseEntity<List<Member>>` |
+| `BoplaReturnSafe` | non | `SafeMember` renvoyé, mot de passe `@JsonIgnore` |
+| `BoplaReturnDto` | non | vue `MemberView` (record) |
+| `BoplaNestedExposure` | oui | `Purchase` renvoyé avec `buyer.password` |
+| `BoplaJsonView` | non | `@JsonView` sur le gestionnaire |
+| `BoplaNotSaved` | non | `@RequestBody Member` lu, jamais enregistré |
+
 ### `journal` : injection dans les journaux (11 cas)
 
 | Cas | Vulnérable | Ce qui est testé |

@@ -326,3 +326,16 @@ BolaAdminOnly,bola,false,639
 BolaServiceOwnerCheck,bola,false,639
 BolaNonIdParam,bola,false,639
 BolaExplicitCheck,bola,false,639
+BoplaRequestBodyEntity,bopla,true,915
+BoplaModelAttributeEntity,bopla,true,915
+BoplaImplicitBinding,bopla,true,915
+BoplaDto,bopla,false,915
+BoplaJsonIgnoreSafe,bopla,false,915
+BoplaInitBinder,bopla,false,915
+BoplaReturnEntity,bopla,true,213
+BoplaReturnResponseEntityList,bopla,true,213
+BoplaReturnSafe,bopla,false,213
+BoplaReturnDto,bopla,false,213
+BoplaNestedExposure,bopla,true,213
+BoplaJsonView,bopla,false,213
+BoplaNotSaved,bopla,false,915
