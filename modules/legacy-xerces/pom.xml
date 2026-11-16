@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Module « legacy » : embarque Apache Xerces, qui ignore les options JAXP 1.5
+     (FEATURE_SECURE_PROCESSING, accessExternalDTD). Sert aux cas XXE de ce dossier uniquement. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>vulnlab</groupId>
+  <artifactId>legacy-xerces</artifactId>
+  <version>1.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.12.2</version>
+    </dependency>
+  </dependencies>
+</project>

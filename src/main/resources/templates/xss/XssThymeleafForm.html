@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <form th:object="${sortForm}" method="post">
+    <input type="text" th:field="*{free}"/>
+    <p>Tri demandé : <span th:utext="*{free}">tri</span></p>
+  </form>
+</body>
+</html>

@@ -15,4 +15,8 @@ public interface InvoiceMapper {
 
     @Select("SELECT * FROM invoice WHERE customer = #{customer}")
     List<Map<String, Object>> findByCustomer(@Param("customer") String customer);
+
+    /** Paramètre unique sans @Param : ${column} est la propriété column du DTO. */
+    @Select("SELECT * FROM invoice ORDER BY ${column}")
+    List<Map<String, Object>> findSorted(SortDto sort);
 }

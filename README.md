@@ -48,6 +48,12 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `SqliSpringRegexColumn` | non | `sort.matches("[a-zA-Z_]+")` |
 | `SqliSpringRegexWeak` | oui | regex qui accepte l'apostrophe et l'espace |
 | `SqliSpringGuardConditional` | oui | `if (strict && !SORTABLE.contains(sort))` : sans `strict`, rien n'est vérifié |
+| `SqliSpringGuardNestedExit` | oui | `if (!SORTABLE.contains(sort)) { if (strict) throw ...; }` : le refus ne sort pas toujours |
+| `SqliSpringGuardOtherField` | oui | liste blanche sur `sort.getColumn()`, mais `sort.getFree()` est concaténé |
+| `SqliSpringGuardSameField` | non | liste blanche sur `sort.getFree()`, le champ concaténé |
+| `SqliSpringParamPattern` | non | `@RequestParam @Pattern(regexp = "[a-zA-Z_]+")`, classe `@Validated` |
+| `SqliSpringParamPatternNoValidated` | oui | même `@Pattern`, sans `@Validated` : non vérifié (avant Spring 6.1) |
+| `SqliSpringSingletonCache` | oui | terme rangé dans une `Map` d'un `@Service` (`put`), relu et concaténé |
 | `SqliSpringGuardInside` | non | sink dans la branche `if (SORTABLE.contains(sort))` |
 | `SqliSpringCriteriaApi` | non | API Criteria : `em.createQuery(cq)`, valeur liée par `cb.equal` |
 | `SqliSpringDateConversion` | non | `LocalDate.parse` avant la concaténation |
@@ -56,6 +62,11 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | `SqliSpringValidPatternWeak` | oui | `@Valid`, regex qui accepte l'apostrophe |
 | `SqliSpringEnumValue` | non | `DocumentType.valueOf(texte).name()` : liste blanche de fait |
 | `SqliMyBatisDollar` | oui | MyBatis `@Select` avec `${customer}` |
+| `SqliMyBatisSingleObject` | oui | MyBatis, paramètre unique sans `@Param` : `${column}` est une propriété du DTO |
+| `SqliJooqPlainSql` | oui | jOOQ : `dsl.fetch("... " + name)` (SQL brut) |
+| `SqliJooqName` | non | jOOQ : `DSL.field(DSL.name(sort))`, identifiant entre guillemets |
+| `SqliR2dbcSql` | oui | R2DBC : `databaseClient.sql("... " + name)` |
+| `SqliStoredProcedureName` | oui | `createStoredProcedureQuery("report_" + report)` : nom recopié dans `{call ...}` |
 | `SqliMyBatisHash` | non | MyBatis `@Select` avec `#{customer}` |
 | `SqliMyBatisXml` | oui | mapper XML : `ORDER BY ${sort}` |
 | `SqliMyBatisXmlHash` | non | mapper XML : `#{customer}` |
@@ -82,6 +93,8 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
 | `PathSpringFile` | oui | `new File(BASE_DIR, name)` |
+| `PathSpringZipFile` | oui | `new ZipFile(BASE_DIR + name)` |
+| `PathSpringResourceUtils` | oui | `ResourceUtils.getFile("file:/var/app/files/" + name)` |
 | `PathJaxrsNio` | oui | `Paths.get(BASE_DIR, name)` |
 | `PathSpringFilenameUtils` | non | nettoyage `FilenameUtils.getName` |
 | `PathSpringEsapiValidator` | non | nettoyage ESAPI `getValidFileName` |
@@ -109,6 +122,20 @@ Le code ne compile pas tel quel, et c'est voulu : Joern analyse les sources seul
 | Cas | Vulnérable | Ce qui est testé |
 |---|---|---|
 | `XssServletWriter` | oui | `response.getWriter().println(... + name)` |
+| `XssServletWriterHelper` | oui | flux de la réponse passé à une méthode utilitaire qui y écrit |
+| `XssServletRegexGuard` | non | `name.matches("[a-zA-Z0-9 ]+")` avant l'écriture |
+| `XssServletRegexTags` | oui | regex qui accepte `<`, `>` et `=` : `<svg onload=location=name>` passe |
+| `XssServletJsonContentType` | non | `setContentType("application/json")` : pas interprété comme du HTML |
+| `XssServletJsonOrHtml` | oui | type JSON ou HTML selon un paramètre |
+| `XssRestEntityJson` | non | `ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)` |
+| `XssRestStoredById` | second ordre | `@PathVariable Long id` → `findById(id)` → titre écrit : rubrique `secondOrdre` (hors `expected.csv`) ; `getId()` écrit : rien |
+| `XssThymeleafUtext` | oui | Thymeleaf `th:utext="${thBio}"` (gabarit `templates/xss/`) |
+| `XssThymeleafText` | non | Thymeleaf `th:text` et `[[...]]` : échappés |
+| `XssThymeleafInline` | oui | Thymeleaf `[(${thComment})]` |
+| `XssThymeleafHref` | oui | Thymeleaf `th:href="${thSite}"` : URL entière, `javascript:` passe |
+| `XssThymeleafEscaped` | non | Thymeleaf `th:utext="${#strings.escapeXml(...)}"` |
+| `XssThymeleafParam` | oui | Thymeleaf `th:utext="${param.q}"` : la vue lit la requête |
+| `XssThymeleafForm` | oui | Thymeleaf `th:object="${sortForm}"` puis `th:utext="*{free}"` |
 | `XssServletPrintWriterVar` | oui | `PrintWriter out = response.getWriter(); out.print(...)` |
 | `XssSpringResponseWriter` | oui | handler Spring qui écrit dans `HttpServletResponse` |
 | `XssSpringHtmlUtils` | non | nettoyage Spring `HtmlUtils.htmlEscape` |
@@ -179,6 +206,8 @@ BenchmarkJava ne contient aucun cas XXE : ce labo est la seule mesure de cette r
 | `XxeServletDisallowDoctype` | non | `disallow-doctype-decl` à true |
 | `XxeServletConstantXml` | non | parseur non protégé, mais XML constant |
 | `XxeSpringSecureProcessing` | non | `FEATURE_SECURE_PROCESSING` à true |
+| `XxeXercesSecureProcessing` | oui | module `modules/legacy-xerces` (xercesImpl dans le pom) : FSP ignoré par Apache Xerces |
+| `XxeXercesDisallowDoctype` | non | même module : `disallow-doctype-decl` protège aussi avec Xerces |
 | `XxeSpringAccessExternalDtd` | non | `ACCESS_EXTERNAL_DTD` à `""` |
 | `XxeSpringStaxNoDtd` | non | StAX : `SUPPORT_DTD` à false |
 | `XxeSpringExternalEntitiesOff` | non | SAX : entités générales **et** paramètres désactivées |
@@ -217,6 +246,8 @@ BenchmarkJava ne contient aucun cas XXE : ce labo est la seule mesure de cette r
 | `DeserServletObjectInputStream` | oui | `ObjectInputStream` sur le corps de la requête, cast après coup |
 | `DeserServletObjectInputFilter` | non | JEP 290 : `setObjectInputFilter` en liste blanche (`...;!*`) |
 | `DeserServletFilterAllowAll` | oui | filtre posé mais qui accepte tout (`*`) |
+| `DeserServletFilterLambdaAllowed` | oui | filtre Java `info -> Status.ALLOWED` |
+| `DeserServletSerialFilterProperty` | oui | `System.setProperty("jdk.serialFilter", "maxdepth=10")` : aucune classe refusée |
 | `DeserServletLookAhead` | non | sous-classe du projet : `resolveClass` refuse les classes inconnues |
 | `DeserServletLoggingStream` | oui | sous-classe qui redéfinit `resolveClass` sans rien refuser |
 | `DeserServletValidatingOis` | non | Commons IO `ValidatingObjectInputStream` + `accept(Order.class)` |
@@ -226,6 +257,7 @@ BenchmarkJava ne contient aucun cas XXE : ce labo est la seule mesure de cette r
 | `DeserSpringXStream` | oui | XStream sans liste blanche (≤ 1.4.17) |
 | `DeserSpringXStreamAllowTypes` | non | XStream : `allowTypes` dans le constructeur (champ) |
 | `DeserSpringXStreamAnyType` | oui | XStream : `addPermission(AnyTypePermission.ANY)` rouvre tout |
+| `DeserSpringXStreamWildcardAll` | oui | XStream : `allowTypesByWildcard(new String[]{"**"})` accepte tout |
 | `DeserSpringSnakeYaml` | oui | SnakeYAML `new Yaml().load(...)` (1.x) |
 | `DeserSpringSnakeYamlSafe` | non | SnakeYAML avec `SafeConstructor` |
 | `DeserSpringJacksonDefaultTyping` | oui | Jackson `enableDefaultTyping()` |
@@ -253,10 +285,14 @@ La colonne « Portée » indique ce que l'utilisateur contrôle : l'**hôte** (S
 | `SsrfSpringApacheHttpGet` | oui | hôte | Apache HttpClient `new HttpGet(url)` |
 | `SsrfSpringOkHttp` | oui | hôte | OkHttp `new Request.Builder().url(url)` |
 | `SsrfSpringJsoup` | oui | hôte | `Jsoup.connect(url)` |
+| `SsrfSpringImageIo` | oui | hôte | `ImageIO.read(new URL(url))` |
+| `SsrfSpringRequestEntity` | oui | hôte | `RequestEntity.get(URI.create(url))` puis `exchange` |
+| `SsrfSpringImageIoFile` | non | | `ImageIO.read(File)` : un fichier, pas une requête |
 | `SsrfSpringHostConcat` | oui | hôte | `"https://" + host + "/api"` |
 | `SsrfSpringPrefixNoSlash` | oui | hôte | `"https://api.interne" + path` : `@evil.com` change l'hôte |
 | `SsrfSpringStartsWithNoSlash` | oui | hôte | `startsWith("https://api.interne")` : contournable |
 | `SsrfSpringContainsCheck` | oui | hôte | `url.contains("api.interne")` : contournable |
+| `SsrfSpringSchemeOnly` | oui | hôte | `"https".equals(URI.create(url).getScheme())` : seul le schéma est vérifié |
 | `SsrfSpringMatchesNoSlash` | oui | hôte | `matches("https://api\\.interne.*")` : `api.interne.evil.com` passe |
 | `SsrfSpringStartsWithSlash` | non | | `startsWith("https://api.interne/")` |
 | `SsrfSpringMatchesHost` | non | | `matches("https://api\\.interne/.*")` |
@@ -364,6 +400,9 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `RedirectSlashOnly` | oui | `return "redirect:/" + path` (`//pirate.fr`) |
 | `RedirectFixedPath` | non | `return "redirect:/factures/" + id` |
 | `RedirectRelativeCheck` | non | `startsWith("/")` et refus de `//` avant `sendRedirect` |
+| `RedirectSchemeLogged` | oui | `request.getScheme()` (HSTS) n'est pas une vérification de l'URL de redirection |
+| `RedirectFixedPrefixVar` | non | `String target = "/compte/" + page; sendRedirect(target)` |
+| `RedirectVarReassigned` | oui | même variable, réaffectée à `next` si présent |
 | `RedirectLocationHeader` | oui | `setHeader("Location", url)` |
 | `RedirectJaxrs` | oui | `Response.seeOther(URI.create(url))` |
 | `RedirectJspTag` | oui | `<c:redirect url="${param.next}"/>` |
@@ -430,6 +469,8 @@ Mesurés par `Scripts/vue_scan.py` (sans Joern) ; les points « à vérifier » 
 | `BolaEntityManagerDelete` | oui | `em.find(Invoice.class, orderId)` puis `em.remove` |
 | `BolaServiceLayer` | oui | identifiant transmis à un service qui lit sans contrôle |
 | `BolaPrincipalUnused` | oui | `Principal` lu mais jamais comparé |
+| `BolaComparedUnrelated` | oui | `Principal` journalisé ; la seule comparaison porte sur le titre |
+| `BolaOwnerFromRequest` | oui | `findByIdAndOwner(id, ownerId)` avec `ownerId` venu de la requête |
 | `BolaEntityBinding` | oui | `@PathVariable("id") Invoice invoice` chargée par Spring |
 | `BolaServletParam` | oui | servlet : `request.getParameter("accountId")` -> `accountDao.load(...)` |
 | `BolaRequestParamId` | oui | `@RequestParam("invoiceId")` -> `getReferenceById` |
@@ -500,9 +541,51 @@ Chaque chaîne Spring Security des cas est limitée à son chemin (`securityMatc
 | `JournalJul` | oui | `java.util.logging`, `log(Level.INFO, ...)`, servlet |
 | `JournalLombok` | oui | Lombok `@Slf4j` (champ `log` généré) |
 | `JournalOnlyLf` | oui | seul `\n` retiré, `\r` reste |
+| `JournalRegexNewline` | oui | regex `[a-zA-Z0-9 \\n]+` : accepte le retour à la ligne |
 | `JournalHtmlEscape` | oui | `HtmlUtils.htmlEscape` : laisse les retours à la ligne |
 | `JournalCrlfRemoved` | non | `replaceAll("[\r\n]", "_")` |
 | `JournalEscapeJava` | non | `StringEscapeUtils.escapeJava` |
 | `JournalNumeric` | non | `@PathVariable long` |
 | `JournalConstantMessage` | non | message constant, la donnée n'est pas journalisée |
+
+## Lombok
+
+Le dossier `vulnlab/lombok` contient des classes Lombok (`@Data`, `@Getter` / `@Setter`, `@Value` + `@Builder`,
+`@RequiredArgsConstructor`) : chaque cas `*Lombok*` est le jumeau d'un cas existant écrit avec des getters à la main
+(`SqliSpringLombokDto` / `SqliSpringOrderBy...`, `XssJsfLombokEscapeFalse` / `XssJsfEscapeFalse`, `XssJspFormObjectLombok` /
+`XssJspFormObject`, `BoplaLombokEntity` / `BoplaRequestBodyEntity`...). Un écart entre les deux vient de Lombok.
+
+| Cas | Vulnérable | Ce qui est testé |
+|---|---|---|
+| `SqliSpringLombokDto` | oui | `@Data` : `getColumn()` généré, concaténé dans `ORDER BY` |
+| `SqliSpringLombokDtoValid` | non | `@Data` + `@Pattern` sur le champ, `@Valid` sur la source |
+| `SqliSpringLombokDtoLong` | non | `@Getter` : `getId()` renvoie un `Long` |
+| `SqliSpringLombokValue` | oui | `@Value` (Lombok, immuable) + `@Builder` |
+| `SqliJsfLombokBean` | oui | bean JSF `@Getter @Setter`, mot-clé saisi concaténé (`SqliJsfLombokSearch.xhtml`) |
+| `SqliSpringLombokGuard` | non | liste blanche sur `sort.getColumn()` (getter généré), même valeur dans `ORDER BY` |
+| `SqliSpringLombokGuardOtherField` | oui | liste blanche sur `getDirection()`, `getColumn()` concaténé |
+| `XssJsfLombokEscapeFalse` | oui | bean JSF `@Getter @Setter`, saisie réaffichée avec `escape="false"` |
+| `XssJsfLombokIntegerProp` | non | bean JSF `@Data`, propriété `Integer` |
+| `XssJspFormObjectLombok` | oui | objet de formulaire `@Getter @Setter` réaffiché par la JSP |
+| `XssJspFormObjectLombokInt` | non | même objet, seul le champ `Integer` est écrit |
+| `PathSpringLombokService` | oui | contrôleur et service `@RequiredArgsConstructor` (champ `final` injecté) |
+| `BoplaLombokEntity` | oui | entité `@Data` liée au corps puis enregistrée |
+| `BoplaLombokReturn` | oui | entité `@Data` renvoyée (mot de passe exposé) |
+
+Le `pom.xml` à la racine déclare les dépendances du labo (Spring Boot 3, Jakarta EE, Lombok...) : il sert à générer le
+CPG avec les types résolus (`python -m Tests.regression --dependances` dans Tiresias). Le labo n'est pas fait pour être construit.
+
+## Cas dépendants des types (jars)
+
+Constructions où le type ne peut venir que d'un jar. En mode normal, certains sont des FN assumés (enregistrés dans
+la référence) ; avec `--jars`, ils doivent passer en TP : la régression l'affiche comme une amélioration (↑).
+
+| Cas | Vulnérable | Ce qui dépend du jar |
+|---|---|---|
+| `SqliTypesJdbcDaoSupport` | oui | `getJdbcTemplate()` hérité de `JdbcDaoSupport` |
+| `SqliTypesGetBean` | oui | `var template = context.getBean(JdbcTemplate.class)` (méthode générique) |
+| `SqliTypesCurrentSession` | oui | `sessionFactory.getCurrentSession()` renvoie une `Session` |
+| `SqliTypesWildcardImport` | oui | import `org.springframework.jdbc.core.*`, champ `ops` (nom non conventionnel) |
+| `SqliTypesHomonym` | non | témoin : `queryForList` à paramètres nommés liés (texte fixe), import générique ; doit rester sûr dans les deux modes |
+| `SsrfTypesTemplateBuilder` | oui | `RestTemplateBuilder.build()` renvoie un `RestTemplate` |
 

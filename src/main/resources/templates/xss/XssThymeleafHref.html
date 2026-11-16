@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <a th:href="${thSite}">Site web</a>
+  <a th:href="@{/profil/{id}(id=${thSite})}">Profil</a>
+</body>
+</html>
